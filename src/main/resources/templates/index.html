@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蓝天飞航 - 机票预订系统</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <style>
+        /* ===== 全局重置 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* ===== Header ===== */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            padding: 0 40px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 24px;
+            font-weight: 700;
+            color: #4a3f8a;
+            text-decoration: none;
+        }
+
+        .logo i {
+            font-size: 32px;
+            color: #667eea;
+        }
+
+        .nav {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .nav a {
+            text-decoration: none;
+            color: #666;
+            font-size: 15px;
+            font-weight: 500;
+            transition: color 0.3s;
+            padding: 8px 16px;
+            border-radius: 8px;
+        }
+
+        .nav a:hover {
+            color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 24px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-outline:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 6px 16px;
+            font-size: 13px;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #f56565 0%, #ed64a6 100%);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+        }
+
+        /* ===== Hero 区域 ===== */
+        .hero {
+            padding: 60px 40px;
+            text-align: center;
+            color: white;
+        }
+
+        .hero h1 {
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .hero p {
+            font-size: 18px;
+            opacity: 0.9;
+            margin-bottom: 40px;
+        }
+
+        /* ===== 搜索卡片 ===== */
+        .search-card {
+            max-width: 900px;
+            margin: -20px auto 40px;
+            background: white;
+            border-radius: 24px;
+            padding: 32px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            position: relative;
+            z-index: 10;
+        }
+
+        .search-tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 24px;
+            background: #f0f0f5;
+            padding: 4px;
+            border-radius: 12px;
+        }
+
+        .search-tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s;
+            border: none;
+            background: transparent;
+            color: #666;
+        }
+
+        .search-tab.active {
+            background: white;
+            color: #4a3f8a;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            gap: 16px;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #666;
+        }
+
+        .form-group input, .form-group select {
+            padding: 12px 16px;
+            border: 2px solid #e8e8ef;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.3s;
+            background: #fafafa;
+            outline: none;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+        }
+
+        .search-btn {
+            padding: 12px 32px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            height: 48px;
+            white-space: nowrap;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        /* ===== 主内容区 ===== */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        .section-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: white;
+            margin: 48px 0 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-title i {
+            font-size: 28px;
+        }
+
+        /* ===== 航班卡片 ===== */
+        .flight-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 60px;
+        }
+
+        .flight-card {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .flight-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .flight-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .flight-no {
+            font-size: 14px;
+            color: #667eea;
+            font-weight: 700;
+            background: rgba(102, 126, 234, 0.1);
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+
+        .flight-airline {
+            font-size: 13px;
+            color: #999;
+        }
+
+        .flight-route {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .flight-city {
+            text-align: center;
+        }
+
+        .flight-city .city {
+            font-size: 22px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .flight-city .airport {
+            font-size: 12px;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        .flight-time {
+            text-align: center;
+        }
+
+        .flight-time .time {
+            font-size: 20px;
+            font-weight: 700;
+            color: #4a3f8a;
+        }
+
+        .flight-time .duration {
+            font-size: 12px;
+            color: #999;
+            margin: 4px 0;
+        }
+
+        .flight-time .line {
+            width: 80px;
+            height: 2px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            margin: 4px auto;
+            border-radius: 1px;
+        }
+
+        .flight-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 16px;
+            border-top: 1px solid #f0f0f5;
+        }
+
+        .flight-price {
+            font-size: 24px;
+            font-weight: 800;
+            color: #e53e3e;
+        }
+
+        .flight-price span {
+            font-size: 14px;
+            font-weight: 400;
+            color: #999;
+        }
+
+        .flight-seats {
+            font-size: 13px;
+            color: #999;
+        }
+
+        .flight-seats .low {
+            color: #e53e3e;
+            font-weight: 600;
+        }
+
+        /* ===== 模态框 ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 32px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .modal-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: #f0f0f5;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s;
+        }
+
+        .modal-close:hover {
+            background: #e0e0eb;
+        }
+
+        /* ===== 通知 ===== */
+        .toast {
+            position: fixed;
+            top: 80px;
+            right: 24px;
+            z-index: 3000;
+            padding: 16px 24px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+            transform: translateX(120%);
+            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+        }
+
+        .toast.error {
+            background: linear-gradient(135deg, #f56565, #e53e3e);
+        }
+
+        .toast.info {
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+        }
+
+        /* ===== 加载动画 ===== */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ===== 登录表单 ===== */
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .auth-form .form-group {
+            gap: 8px;
+        }
+
+        .auth-form .form-group input {
+            width: 100%;
+        }
+
+        .auth-form .btn {
+            width: 100%;
+            justify-content: center;
+            margin-top: 8px;
+        }
+
+        .auth-switch {
+            text-align: center;
+            margin-top: 16px;
+            color: #999;
+            font-size: 14px;
+        }
+
+        .auth-switch a {
+            color: #667eea;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        /* ===== 订单页面 ===== */
+        .order-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .order-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px 24px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .order-info {
+            flex: 1;
+        }
+
+        .order-info .order-no {
+            font-size: 13px;
+            color: #999;
+        }
+
+        .order-info .order-route {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 4px 0;
+        }
+
+        .order-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-PENDING_PAY { background: #fefcbf; color: #975a16; }
+        .status-PAID { background: #c6f6d5; color: #276749; }
+        .status-CANCELLED { background: #fed7d7; color: #9b2c2c; }
+        .status-COMPLETED { background: #bee3f8; color: #2a4365; }
+        .status-REFUNDED { background: #e9d8fd; color: #553c9a; }
+        .status-TIMEOUT { background: #e2e8f0; color: #4a5568; }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 768px) {
+            .header { padding: 0 16px; }
+            .hero h1 { font-size: 32px; }
+            .search-form {
+                grid-template-columns: 1fr;
+            }
+            .flight-grid {
+                grid-template-columns: 1fr;
+            }
+            .modal {
+                width: 95%;
+                padding: 20px;
+            }
+            .nav a { display: none; }
+            .nav .btn { display: inline-flex; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== 通知 ===== -->
+<div id="toast" class="toast"></div>
+
+<!-- ===== 顶部导航 ===== -->
+<header class="header">
+    <a href="/" class="logo">
+        <i class="fas fa-plane-departure"></i>
+        蓝天飞航
+    </a>
+    <nav class="nav">
+        <a href="/"><i class="fas fa-home"></i> 首页</a>
+        <a href="#" onclick="showMyOrders()" id="navOrders" style="display:none">
+            <i class="fas fa-ticket-alt"></i> 我的订单
+        </a>
+        <a href="#" onclick="showLoginModal()" id="navLogin" class="btn btn-outline btn-sm">
+            <i class="fas fa-user"></i> 登录
+        </a>
+        <span id="navUser" style="display:none; display:none; align-items:center; gap:12px;">
+            <span style="color:#666;"><i class="fas fa-user-circle"></i> <span id="usernameDisplay"></span></span>
+            <button onclick="logout()" class="btn btn-sm btn-outline">退出</button>
+        </span>
+    </nav>
+</header>
+
+<!-- ===== Hero 区域 ===== -->
+<section class="hero">
+    <h1>预订您的下一次飞行</h1>
+    <p>蓝天飞航 · 安全 · 便捷 · 舒适 · 覆盖全国航线</p>
+</section>
+
+<!-- ===== 搜索卡片 ===== -->
+<div class="search-card" style="margin: -20px auto 40px;">
+    <div class="search-tabs">
+        <button class="search-tab active" onclick="switchTab(this, 'oneway')">
+            <i class="fas fa-arrow-right"></i> 单程
+        </button>
+        <button class="search-tab" onclick="switchTab(this, 'round')">
+            <i class="fas fa-exchange-alt"></i> 往返
+        </button>
+    </div>
+    <div class="search-form">
+        <div class="form-group">
+            <label><i class="fas fa-map-marker-alt"></i> 出发城市</label>
+            <input type="text" id="departureCity" placeholder="例如: 北京" value="北京">
+        </div>
+        <div class="form-group">
+            <label><i class="fas fa-map-marker"></i> 到达城市</label>
+            <input type="text" id="arrivalCity" placeholder="例如: 上海" value="上海">
+        </div>
+        <div class="form-group">
+            <label><i class="fas fa-calendar"></i> 出发日期</label>
+            <input type="date" id="departureDate">
+        </div>
+        <button class="search-btn" onclick="searchFlights()">
+            <i class="fas fa-search"></i> 搜索
+        </button>
+    </div>
+</div>
+
+<!-- ===== 主内容 ===== -->
+<main class="container">
+    <!-- 加载 -->
+    <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p style="color:white;">正在搜索航班...</p>
+    </div>
+
+    <!-- 搜索结果 -->
+    <div id="searchResults" style="display:none;">
+        <div class="section-title">
+            <i class="fas fa-search-location"></i>
+            <span>搜索结果</span>
+        </div>
+        <div id="flightResults" class="flight-grid"></div>
+    </div>
+
+    <!-- 热门航班 -->
+    <div id="hotFlights">
+        <div class="section-title">
+            <i class="fas fa-fire"></i>
+            <span>热门航线</span>
+        </div>
+        <div id="hotFlightList" class="flight-grid"></div>
+    </div>
+</main>
+
+<!-- ===== 登录/注册模态框 ===== -->
+<div id="authModal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h2 id="authTitle">登录</h2>
+            <button class="modal-close" onclick="closeModal('authModal')">✕</button>
+        </div>
+
+        <!-- 登录表单 -->
+        <div id="loginForm" class="auth-form">
+            <div class="form-group">
+                <label>用户名</label>
+                <input type="text" id="loginUsername" placeholder="请输入用户名">
+            </div>
+            <div class="form-group">
+                <label>密码</label>
+                <input type="password" id="loginPassword" placeholder="请输入密码">
+            </div>
+            <button class="btn btn-primary" onclick="doLogin()">
+                <i class="fas fa-sign-in-alt"></i> 登录
+            </button>
+            <div class="auth-switch">
+                还没有账号？<a onclick="showRegister()">立即注册</a>
+            </div>
+        </div>
+
+        <!-- 注册表单 -->
+        <div id="registerForm" class="auth-form" style="display:none;">
+            <div class="form-group">
+                <label>用户名</label>
+                <input type="text" id="regUsername" placeholder="请输入用户名">
+            </div>
+            <div class="form-group">
+                <label>邮箱</label>
+                <input type="email" id="regEmail" placeholder="请输入邮箱">
+            </div>
+            <div class="form-group">
+                <label>密码</label>
+                <input type="password" id="regPassword" placeholder="请输入密码(至少6位)">
+            </div>
+            <div class="form-group">
+                <label>手机号</label>
+                <input type="text" id="regPhone" placeholder="请输入手机号">
+            </div>
+            <div class="form-group">
+                <label>真实姓名</label>
+                <input type="text" id="regRealName" placeholder="请输入真实姓名">
+            </div>
+            <button class="btn btn-primary" onclick="doRegister()">
+                <i class="fas fa-user-plus"></i> 注册
+            </button>
+            <div class="auth-switch">
+                已有账号？<a onclick="showLogin()">立即登录</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== 订票模态框 ===== -->
+<div id="bookingModal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h2>预订机票</h2>
+            <button class="modal-close" onclick="closeModal('bookingModal')">✕</button>
+        </div>
+        <div id="bookingDetail"></div>
+    </div>
+</div>
+
+<!-- ===== 订单模态框 ===== -->
+<div id="orderModal" class="modal-overlay">
+    <div class="modal" style="max-width: 800px;">
+        <div class="modal-header">
+            <h2><i class="fas fa-ticket-alt"></i> 我的订单</h2>
+            <button class="modal-close" onclick="closeModal('orderModal')">✕</button>
+        </div>
+        <div id="orderList" class="order-list"></div>
+    </div>
+</div>
+
+<script>
+    // ===== 状态管理 =====
+    let currentUser = null;
+    let token = localStorage.getItem('token');
+    let selectedFlight = null;
+
+    // ===== 初始化 =====
+    document.addEventListener('DOMContentLoaded', function() {
+        // 设置默认日期
+        const today = new Date();
+        document.getElementById('departureDate').value = today.toISOString().split('T')[0];
+
+        if (token) {
+            fetchUserProfile();
+        }
+
+        loadHotFlights();
+    });
+
+    // ===== 通知 =====
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.className = `toast ${type} show`;
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    // ===== 模态框 =====
+    function showModal(id) {
+        document.getElementById(id).classList.add('show');
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).classList.remove('show');
+    }
+
+    // 点击遮罩关闭
+    document.querySelectorAll('.modal-overlay').forEach(el => {
+        el.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('show');
+            }
+        });
+    });
+
+    // ===== 搜索 =====
+    function switchTab(el, type) {
+        document.querySelectorAll('.search-tab').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+    }
+
+    async function searchFlights() {
+        const departureCity = document.getElementById('departureCity').value;
+        const arrivalCity = document.getElementById('arrivalCity').value;
+        const departureDate = document.getElementById('departureDate').value;
+
+        const params = new URLSearchParams();
+        if (departureCity) params.set('departureCity', departureCity);
+        if (arrivalCity) params.set('arrivalCity', arrivalCity);
+        if (departureDate) params.set('departureDate', departureDate);
+
+        document.getElementById('loading').classList.add('show');
+        document.getElementById('searchResults').style.display = 'none';
+
+        try {
+            const res = await fetch(`/api/flights/search?${params}`);
+            const result = await res.json();
+
+            document.getElementById('loading').classList.remove('show');
+
+            if (result.code === 200) {
+                renderFlights(result.data.content, 'flightResults');
+                document.getElementById('searchResults').style.display = 'block';
+                document.getElementById('hotFlights').style.display = 'none';
+
+                if (result.data.content.length === 0) {
+                    document.getElementById('flightResults').innerHTML =
+                        '<div style="text-align:center;padding:40px;color:white;font-size:18px;">未找到相关航班</div>';
+                }
+            } else {
+                showToast(result.message, 'error');
+            }
+        } catch (err) {
+            document.getElementById('loading').classList.remove('show');
+            showToast('搜索失败，请检查网络', 'error');
+        }
+    }
+
+    // ===== 加载热门航班 =====
+    async function loadHotFlights() {
+        try {
+            const res = await fetch('/api/flights/hot?limit=6');
+            const result = await res.json();
+            if (result.code === 200) {
+                renderFlights(result.data, 'hotFlightList');
+            }
+        } catch (err) {
+            console.error('加载热门航班失败', err);
+        }
+    }
+
+    // ===== 渲染航班 =====
+    function renderFlights(flights, containerId) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = flights.map(f => `
+            <div class="flight-card" onclick="openBooking(${f.id})">
+                <div class="flight-header">
+                    <span class="flight-no">${f.flightNo}</span>
+                    <span class="flight-airline"><i class="fas fa-building"></i> ${f.airline}</span>
+                </div>
+                <div class="flight-route">
+                    <div class="flight-city">
+                        <div class="city">${f.departureCity}</div>
+                        <div class="airport">${f.departureAirport || ''}</div>
+                    </div>
+                    <div class="flight-time">
+                        <div class="time">${formatTime(f.departureTime)}</div>
+                        <div class="duration">${ Math.floor(f.duration / 60) }h${ f.duration % 60 }m</div>
+                        <div class="line"></div>
+                    </div>
+                    <div class="flight-city">
+                        <div class="city">${f.arrivalCity}</div>
+                        <div class="airport">${f.arrivalAirport || ''}</div>
+                    </div>
+                </div>
+                <div class="flight-footer">
+                    <div>
+                        <div class="flight-price">¥${(f.economyPrice / 100).toFixed(0)} <span>起</span></div>
+                    </div>
+                    <div class="flight-seats">
+                        ${f.remainingSeats > 10
+                            ? `余${f.remainingSeats}张`
+                            : `<span class="low">仅剩${f.remainingSeats}张!</span>`
+                        }
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function formatTime(dateStr) {
+        const d = new Date(dateStr);
+        return d.toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit'});
+    }
+
+    // ===== 预订 =====
+    async function openBooking(flightId) {
+        if (!token) {
+            showToast('请先登录', 'info');
+            showLoginModal();
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/flights/${flightId}`);
+            const result = await res.json();
+            if (result.code !== 200) {
+                showToast(result.message, 'error');
+                return;
+            }
+
+            const f = result.data;
+            selectedFlight = f;
+            const modal = document.getElementById('bookingDetail');
+            modal.innerHTML = `
+                <div style="background:#f8f9ff;border-radius:16px;padding:20px;margin-bottom:20px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                        <span style="font-weight:700;color:#667eea;">${f.flightNo}</span>
+                        <span style="color:#999;">${f.airline}</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <div style="text-align:center;">
+                            <div style="font-size:24px;font-weight:700;">${f.departureCity}</div>
+                            <div style="font-size:12px;color:#999;">${formatTime(f.departureTime)}</div>
+                        </div>
+                        <div style="text-align:center;flex:1;padding:0 20px;">
+                            <div style="font-size:12px;color:#999;">${Math.floor(f.duration/60)}h${f.duration%60}m</div>
+                            <div style="height:2px;background:linear-gradient(90deg,#667eea,#764ba2);margin:8px 0;border-radius:1px;"></div>
+                        </div>
+                        <div style="text-align:center;">
+                            <div style="font-size:24px;font-weight:700;">${f.arrivalCity}</div>
+                            <div style="font-size:12px;color:#999;">${formatTime(f.arrivalTime)}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom:20px;">
+                    <div style="font-weight:600;margin-bottom:12px;">选择舱位</div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+                        <div class="seat-option" onclick="selectSeat(this, 'ECONOMY', ${f.economyPrice})" style="border:2px solid #e8e8ef;border-radius:12px;padding:16px;text-align:center;cursor:pointer;transition:all 0.3s;">
+                            <div style="font-weight:700;margin-bottom:4px;">经济舱</div>
+                            <div style="color:#e53e3e;font-weight:700;font-size:18px;">¥${(f.economyPrice/100).toFixed(0)}</div>
+                            <div style="font-size:12px;color:#999;">余${f.economySeats}张</div>
+                        </div>
+                        <div class="seat-option" onclick="selectSeat(this, 'BUSINESS', ${f.businessPrice})" style="border:2px solid #e8e8ef;border-radius:12px;padding:16px;text-align:center;cursor:pointer;transition:all 0.3s;">
+                            <div style="font-weight:700;margin-bottom:4px;">商务舱</div>
+                            <div style="color:#e53e3e;font-weight:700;font-size:18px;">¥${(f.businessPrice/100).toFixed(0)}</div>
+                            <div style="font-size:12px;color:#999;">余${f.businessSeats}张</div>
+                        </div>
+                        <div class="seat-option" onclick="selectSeat(this, 'FIRST_CLASS', ${f.firstClassPrice})" style="border:2px solid #e8e8ef;border-radius:12px;padding:16px;text-align:center;cursor:pointer;transition:all 0.3s;">
+                            <div style="font-weight:700;margin-bottom:4px;">头等舱</div>
+                            <div style="color:#e53e3e;font-weight:700;font-size:18px;">¥${(f.firstClassPrice/100).toFixed(0)}</div>
+                            <div style="font-size:12px;color:#999;">余${f.firstClassSeats}张</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom:20px;">
+                    <div style="font-weight:600;margin-bottom:12px;">乘机人信息</div>
+                    <div class="form-group" style="margin-bottom:12px;">
+                        <label>乘机人姓名</label>
+                        <input type="text" id="passengerName" placeholder="请输入乘机人姓名" style="padding:12px 16px;border:2px solid #e8e8ef;border-radius:12px;font-size:15px;width:100%;">
+                    </div>
+                    <div class="form-group" style="margin-bottom:12px;">
+                        <label>身份证号</label>
+                        <input type="text" id="passengerIdCard" placeholder="请输入身份证号" style="padding:12px 16px;border:2px solid #e8e8ef;border-radius:12px;font-size:15px;width:100%;">
+                    </div>
+                    <div class="form-group">
+                        <label>手机号</label>
+                        <input type="text" id="passengerPhone" placeholder="请输入手机号" style="padding:12px 16px;border:2px solid #e8e8ef;border-radius:12px;font-size:15px;width:100%;">
+                    </div>
+                </div>
+
+                <div style="margin-bottom:20px;">
+                    <div style="font-weight:600;margin-bottom:12px;">联系人信息</div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                        <div class="form-group">
+                            <label>联系人姓名</label>
+                            <input type="text" id="contactName" value="${currentUser?.realName || ''}" style="padding:12px 16px;border:2px solid #e8e8ef;border-radius:12px;font-size:15px;">
+                        </div>
+                        <div class="form-group">
+                            <label>联系人手机</label>
+                            <input type="text" id="contactPhone" value="${currentUser?.phone || ''}" style="padding:12px 16px;border:2px solid #e8e8ef;border-radius:12px;font-size:15px;">
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background:#f0f0f5;border-radius:12px;padding:16px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-weight:600;">合计</span>
+                    <span id="totalPrice" style="font-size:28px;font-weight:800;color:#e53e3e;">¥0</span>
+                </div>
+
+                <button class="btn btn-primary" onclick="submitOrder()" style="width:100%;justify-content:center;padding:14px;">
+                    <i class="fas fa-check"></i> 确认预订
+                </button>
+            `;
+            showModal('bookingModal');
+        } catch (err) {
+            showToast('加载失败', 'error');
+        }
+    }
+
+    let selectedSeatType = null;
+    let selectedPrice = 0;
+
+    function selectSeat(el, type, price) {
+        document.querySelectorAll('.seat-option').forEach(s => {
+            s.style.borderColor = '#e8e8ef';
+            s.style.background = 'white';
+        });
+        el.style.borderColor = '#667eea';
+        el.style.background = 'rgba(102,126,234,0.05)';
+        selectedSeatType = type;
+        selectedPrice = price;
+        document.getElementById('totalPrice').textContent = '¥' + (price / 100).toFixed(0);
+    }
+
+    async function submitOrder() {
+        if (!selectedSeatType) {
+            showToast('请选择舱位', 'error');
+            return;
+        }
+
+        const name = document.getElementById('passengerName').value;
+        const idCard = document.getElementById('passengerIdCard').value;
+        const phone = document.getElementById('passengerPhone').value;
+
+        if (!name) {
+            showToast('请输入乘机人姓名', 'error');
+            return;
+        }
+
+        const orderData = {
+            flightId: selectedFlight.id,
+            seatType: selectedSeatType,
+            contactName: document.getElementById('contactName').value || name,
+            contactPhone: document.getElementById('contactPhone').value || phone,
+            passengers: [{
+                name: name,
+                idCard: idCard,
+                phone: phone
+            }]
+        };
+
+        try {
+            const res = await fetch('/api/orders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify(orderData)
+            });
+            const result = await res.json();
+            if (result.code === 200) {
+                showToast('🎉 预订成功！订单号: ' + result.data.orderNo, 'success');
+                closeModal('bookingModal');
+                loadHotFlights();
+            } else {
+                showToast(result.message, 'error');
+            }
+        } catch (err) {
+            showToast('预订失败', 'error');
+        }
+    }
+
+    // ===== 登录 =====
+    function showLoginModal() {
+        showModal('authModal');
+        showLogin();
+    }
+
+    function showLogin() {
+        document.getElementById('authTitle').textContent = '登录';
+        document.getElementById('loginForm').style.display = 'block';
+        document.getElementById('registerForm').style.display = 'none';
+    }
+
+    function showRegister() {
+        document.getElementById('authTitle').textContent = '注册';
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('registerForm').style.display = 'block';
+    }
+
+    async function doLogin() {
+        const username = document.getElementById('loginUsername').value;
+        const password = document.getElementById('loginPassword').value;
+
+        if (!username || !password) {
+            showToast('请填写用户名和密码', 'error');
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username, password})
+            });
+            const result = await res.json();
+            if (result.code === 200) {
+                token = result.data.token;
+                localStorage.setItem('token', token);
+                closeModal('authModal');
+                showToast('登录成功', 'success');
+                fetchUserProfile();
+            } else {
+                showToast(result.message, 'error');
+            }
+        } catch (err) {
+            showToast('登录失败', 'error');
+        }
+    }
+
+    async function doRegister() {
+        const data = {
+            username: document.getElementById('regUsername').value,
+            email: document.getElementById('regEmail').value,
+            password: document.getElementById('regPassword').value,
+            phone: document.getElementById('regPhone').value,
+            realName: document.getElementById('regRealName').value
+        };
+
+        if (!data.username || !data.email || !data.password) {
+            showToast('请填写必要信息', 'error');
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            if (result.code === 200) {
+                showToast('注册成功，请登录', 'success');
+                showLogin();
+                document.getElementById('loginUsername').value = data.username;
+            } else {
+                showToast(result.message, 'error');
+            }
+        } catch (err) {
+            showToast('注册失败', 'error');
+        }
+    }
+
+    // ===== 用户信息 =====
+    async function fetchUserProfile() {
+        try {
+            const res = await fetch('/api/user/profile', {
+                headers: {'Authorization': 'Bearer ' + token}
+            });
+            const result = await res.json();
+            if (result.code === 200) {
+                currentUser = result.data;
+                document.getElementById('navLogin').style.display = 'none';
+                document.getElementById('navUser').style.display = 'flex';
+                document.getElementById('navOrders').style.display = 'inline-flex';
+                document.getElementById('usernameDisplay').textContent = currentUser.username;
+            } else {
+                logout();
+            }
+        } catch (err) {
+            console.error('获取用户信息失败', err);
+        }
+    }
+
+    function logout() {
+        token = null;
+        currentUser = null;
+        localStorage.removeItem('token');
+        document.getElementById('navLogin').style.display = 'inline-flex';
+        document.getElementById('navUser').style.display = 'none';
+        document.getElementById('navOrders').style.display = 'none';
+        showToast('已退出登录', 'info');
+    }
+
+    // ===== 我的订单 =====
+    async function showMyOrders() {
+        if (!token) {
+            showToast('请先登录', 'info');
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/orders?page=0&size=20', {
+                headers: {'Authorization': 'Bearer ' + token}
+            });
+            const result = await res.json();
+            if (result.code !== 200) {
+                showToast(result.message, 'error');
+                return;
+            }
+
+            const orders = result.data.content;
+            const container = document.getElementById('orderList');
+
+            if (orders.length === 0) {
+                container.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">暂无订单</div>';
+            } else {
+                container.innerHTML = orders.map(o => `
+                    <div class="order-card">
+                        <div class="order-info">
+                            <div class="order-no">订单号: ${o.orderNo}</div>
+                            <div class="order-route">
+                                <i class="fas fa-plane" style="color:#667eea;"></i>
+                                ${o.departureCity} → ${o.arrivalCity}
+                            </div>
+                            <div style="font-size:13px;color:#999;margin-top:4px;">
+                                ${formatTime(o.departureTime)} · ${o.passengerCount}位乘客
+                            </div>
+                            <div style="font-weight:700;color:#e53e3e;margin-top:4px;">¥${(o.totalPrice/100).toFixed(0)}</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div class="order-status status-${o.status}">
+                                ${getStatusText(o.status)}
+                            </div>
+                            <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end;">
+                                ${o.status === 'PENDING_PAY' ? `
+                                    <button class="btn btn-sm btn-success" onclick="payOrder(${o.id})">去支付</button>
+                                    <button class="btn btn-sm btn-danger" onclick="cancelOrder(${o.id})">取消</button>
+                                ` : ''}
+                                ${o.status === 'PAID' ? `
+                                    <button class="btn btn-sm btn-danger" onclick="refundOrder(${o.id})">申请退款</button>
+                                    <button class="btn btn-sm btn-primary" onclick="completeOrder(${o.id})">确认出行</button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            showModal('orderModal');
+        } catch (err) {
+            showToast('加载订单失败', 'error');
+        }
+    }
+
+    function getStatusText(status) {
+        const map = {
+            'PENDING_PAY': '待支付',
+            'PAID': '已支付',
+            'CANCELLED': '已取消',
+            'COMPLETED': '已完成',
+            'REFUNDING': '退款中',
+            'REFUNDED': '已退款',
+            'TIMEOUT': '已超时'
+        };
+        return map[status] || status;
+    }
+
+    async function payOrder(orderId) {
+        try {
+            const res = await fetch('/api/payments', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify({orderId, payMethod: 'BALANCE'})
+            });
+            const result = await res.json();
+            if (result.code === 200) {
+                showToast('支付成功！', 'success');
+                showMyOrders();
+            } else {
+                showToast(result.message, 'error');
+            }
+        } catch (err) {
+            showToast('支付失败', 'error');
+        }
+    }
+
+    async function cancelOrder(orderId) {
+        if (!confirm('确定要取消该订单吗？')) return;
+        try {
+            const res = await fetch(`/api/orders/${orderId}/cancel`, {
+                method: 'POST',
+                headers: {'Authorization': 'Bearer ' + token}
+            });
+            const result = await res.json();
+            if (result.code === 200) {
+                showToast('已取消', 'success');
+                showMyOrders();
+            } else {
+                showToast(result.message, 'error');
+            }
+        } catch (err) {
+            showToast('取消失败', 'error');
+        }
+    }
+
+    async function refundOrder(orderId) {
+        if (!confirm('确定要申请退款吗？')) return;
+        try {
+            const res = await fetch(`/api/payments/refund/${orderId}`, {
+                method: 'POST',
+                headers: {'Authorization': 'Bearer ' + token}
+            });
+            const result = await res.json();
+            if (result.code === 200) {
+                showToast('退款成功', 'success');
+                showMyOrders();
+            } else {
+                showToast(result.message, 'error');
+            }
+        } catch (err) {
+            showToast('退款失败', 'error');
+        }
+    }
+
+    async function completeOrder(orderId) {
+        try {
+            const res = await fetch(`/api/orders/${orderId}/complete`, {
+                method: 'POST',
+                headers: {'Authorization': 'Bearer ' + token}
+            });
+            const result = await res.json();
+            if (result.code === 200) {
+                showToast('订单已完成', 'success');
+                showMyOrders();
+            } else {
+                showToast(result.message, 'error');
+            }
+        } catch (err) {
+            showToast('操作失败', 'error');
+        }
+    }
+</script>
+
+</body>
+</html>

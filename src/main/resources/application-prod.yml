@@ -1,0 +1,36 @@
+# 生产环境配置 - 使用 MySQL
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/flight_booking?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: your_password
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+    show-sql: false
+
+  sql:
+    init:
+      mode: never
+
+# 后续学习 Redis 时启用
+#  data:
+#    redis:
+#      host: localhost
+#      port: 6379
+#      password:
+#      timeout: 3000ms
+#      lettuce:
+#        pool:
+#          max-active: 16
+#          max-idle: 8
+#          min-idle: 4
+
+logging:
+  level:
+    com.flightbooking: INFO
