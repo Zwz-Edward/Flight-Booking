@@ -1,24 +1,25 @@
-# 开发环境配置 - 使用 H2 内存数据库
+# 开发环境配置 - 使用 MySQL 数据库
 spring:
   datasource:
-    url: jdbc:h2:mem:flight_booking;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
+    url: jdbc:mysql://localhost:3306/flight_booking?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: root
   h2:
     console:
-      enabled: true
-      path: /h2-console
+      enabled: false
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.H2Dialect
+        dialect: org.hibernate.dialect.MySQLDialect
+    show-sql: false
     defer-datasource-initialization: true
 
   sql:
     init:
       mode: always
       data-locations: classpath:data.sql
+      continue-on-error: true
