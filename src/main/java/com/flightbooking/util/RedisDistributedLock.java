@@ -12,7 +12,7 @@ import org.springframework.data.redis.core.script.DefaultRedisScript;
 @Component
 public class RedisDistributedLock {
     private static final Logger log = LoggerFactory.getLogger(RedisDistributedLock.class);
-    private StringRedisTemplate stringRedisTemplate;
+    private final StringRedisTemplate stringRedisTemplate;
     private static final Long LOCK_EXPIRE_MS = 30000L;
     private static final Long RETRY_INTERVAL_MS = 100L;
 
@@ -22,24 +22,24 @@ public class RedisDistributedLock {
         this.stringRedisTemplate = stringRedisTemplate;
     }
 
-    // lockKey 鍊煎緱鏄疪edis鐨刱ey requestId鎸囩殑鏄摢涓偅涓嚎绋嬬敤鐫€閿?
-    public boolean tryLock(String lockKey,String requestId, Long expireMs){
-        long deadline = System.currentTimeMillis() + LOCK_EXPIRE_MS;  // 鏈€澶氱瓑30绉?
+    // lockKey 是 Redis 的 key，requestId 标识哪个线程持有锁
+    public boolean tryLock(String lockKey, String requestId, Long expireMs) {
+        long deadline = System.currentTimeMillis() + LOCK_EXPIRE_MS;  // 最多等30秒
         boolean setIfAbsent = false;
         while(System.currentTimeMillis() < deadline){
-            // 濡傛灉lockKey宸茬粡涓嶅瓨鍦紝鍒欒缃紝濡傛灉宸茬粡瀛樺湪锛屽垯涓嶈缃?== NX
+            // SETNX: key不存在才设置成功
             setIfAbsent = stringRedisTemplate.opsForValue().setIfAbsent(lockKey, requestId, expireMs, TimeUnit.MILLISECONDS);
             if(setIfAbsent == false){
                 try {
                     Thread.sleep(RETRY_INTERVAL_MS);
                 } catch (InterruptedException e) {
-                    log.warn("鑾峰彇閿佽涓柇", e);
-                    Thread.currentThread().interrupt();  // 鎭㈠涓柇鐘舵€?
+                    log.warn("获取锁被中断", e);
+                    Thread.currentThread().interrupt();  // 恢复中断状态
                     return false; 
                 }
             }
             if (setIfAbsent) {
-                return true;  // 鎷垮埌閿侊紝绔嬪嵆杩斿洖
+                return true;  // 拿到锁，立即返回
             }
         }
        return setIfAbsent; 
@@ -52,7 +52,7 @@ public class RedisDistributedLock {
         redisScript.setScriptText(luaScript);
         redisScript.setResultType(Long.class);
         stringRedisTemplate.execute(redisScript, Collections.singletonList(lockKey), requestId);
-        log.debug("閲婃斁閿? {}", lockKey);
+        log.debug("释放锁: {}", lockKey);
     }
     
 }

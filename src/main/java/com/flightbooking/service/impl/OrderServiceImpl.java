@@ -16,8 +16,10 @@ import com.flightbooking.service.FlightService;
 import com.flightbooking.service.OrderService;
 import com.flightbooking.service.UserService;
 import com.flightbooking.util.OrderNoGenerator;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Async;
@@ -28,6 +30,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import com.flightbooking.util.RedisDistributedLock;
 
 /**
  * 订单服务实现
@@ -45,6 +49,7 @@ public class OrderServiceImpl implements OrderService {
     private final FlightRepository flightRepository;
     private final FlightService flightService;
     private final UserService userService;
+    private final RedisDistributedLock redisDistributedLock;
 
     @Override
     @Transactional
